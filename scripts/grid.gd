@@ -7,18 +7,42 @@ export(int) var y_start
 export(int) var offset
 
 var all_pieces := []
+var possible_pieces := [
+	preload("res://scenes/blue_piece.tscn"),
+	preload("res://scenes/green_piece.tscn"),
+	preload("res://scenes/light_green_piece.tscn"),
+	preload("res://scenes/orange_piece.tscn"),
+	preload("res://scenes/pink_piece.tscn"),
+	preload("res://scenes/yellow_piece.tscn"),
+]
 
 
 func _ready() -> void:
+	randomize()
 	all_pieces = make_2d_array()
-	print(all_pieces)
+	spawn_pieces()
 
 
 func make_2d_array() -> Array:
 	var array := []
-	for x in width:
+	for i in width:
 		array.append([])
 		for y in height:
-			array[x].append(null)
+			array[i].append(null)
 
 	return array
+
+
+func grid_to_pixel(column: int, row: int) -> Vector2:
+	var new_x: int = x_start + offset * column
+	var new_y: int = y_start + -offset * row
+	return Vector2(new_x, new_y)
+
+
+func spawn_pieces() -> void:
+	for i in width:
+		for j in height:
+			var rand: int = floor(rand_range(0, possible_pieces.size()))
+			var piece: Node2D = possible_pieces[rand].instance()
+			add_child(piece)
+			piece.position = grid_to_pixel(i, j)
