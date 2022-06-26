@@ -29,7 +29,6 @@ func make_2d_array() -> Array:
 		array.append([])
 		for y in height:
 			array[i].append(null)
-
 	return array
 
 
@@ -44,5 +43,23 @@ func spawn_pieces() -> void:
 		for j in height:
 			var rand: int = floor(rand_range(0, possible_pieces.size()))
 			var piece: Node2D = possible_pieces[rand].instance()
+			var loops := 0
+			while match_at(i, j, piece.color) and loops < 100:
+				loops += 1
+				rand = floor(rand_range(0, possible_pieces.size()))
+				piece = possible_pieces[rand].instance()
 			add_child(piece)
 			piece.position = grid_to_pixel(i, j)
+			all_pieces[i][j] = piece
+
+
+func match_at(col: int, row: int, color: String) -> bool:
+	if col > 1:
+		if all_pieces[col - 1][row] != null and all_pieces[col - 2][row] != null:
+				if all_pieces[col - 1][row].color == color and all_pieces[col - 2][row].color == color:
+					return true
+	if row > 1:
+		if all_pieces[col][row - 1] != null and all_pieces[col][row - 2] != null:
+				if all_pieces[col][row - 1].color == color and all_pieces[col][row - 2].color == color:
+					return true
+	return false
