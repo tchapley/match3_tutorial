@@ -9,6 +9,7 @@ export(int) var offset
 var all_pieces := []
 var first_touch := Vector2.ZERO
 var final_touch := Vector2.ZERO
+var controlling := false
 var possible_pieces := [
 	preload("res://scenes/blue_piece.tscn"),
 	preload("res://scenes/green_piece.tscn"),
@@ -72,7 +73,8 @@ func match_at(col: int, row: int, color: String) -> bool:
 					return true
 	if row > 1:
 		if all_pieces[col][row - 1] != null and all_pieces[col][row - 2] != null:
-				if all_pieces[col][row - 1].color == color and all_pieces[col][row - 2].color == color:
+				if all_pieces[col][row - 1].color == color \
+					and all_pieces[col][row - 2].color == color:
 					return true
 	return false
 
@@ -81,6 +83,40 @@ func touch_input() -> void:
 	if Input.is_action_just_pressed("ui_touch"):
 		first_touch = get_global_mouse_position()
 		var grid_position: Vector2 = pixel_to_grid(first_touch.x, first_touch.y)
-		print(grid_position)
+		if is_in_grid(grid_position.x, grid_position.y):
+			controlling = true
 	if Input.is_action_just_released("ui_touch"):
 		final_touch = get_global_mouse_position()
+		var grid_position: Vector2 = pixel_to_grid(final_touch.x, final_touch.y)
+		if is_in_grid(grid_position.x, grid_position.y) and controlling:
+			touch_difference(pixel_to_grid(first_touch.x, first_touch.y), grid_position)
+
+
+func swap_pieces(col: int, row: int, direction: Vector2) -> void:
+	var first_piece = all_pieces[col][row]
+	var other_piece = all_pieces[col + direction.x][row + direction.y]
+	all_pieces[col][row] = other_piece
+	all_pieces[col + direction.x][row + direction.y] = first_piece
+	first_piece.position = other_piece.position
+	other_piece.position = grid_to_pixel(col, row)
+
+
+func touch_difference(grid1: Vector2, grid2: Vector2) -> void:
+	var difference = grid2 - grid1
+	if abs(difference.x) > abs(difference.y):
+		if difference.x > 0:
+			swap_pieces(grid1.x, grid1.y, Vector2(1, 0))
+		elif difference.x < 0:
+			swap_pieces(grid1.x, grid1.y, Vector2(-1, 0))
+	elif abs(difference.y) > abs(difference.x):
+		if difference.y > 0:
+			swap_pieces(grid1.x, grid1.y, Vector2(0, 1))
+		elif difference.y < 0:
+			swap_pieces(grid1.x, grid1.y, Vector2(0, -1))
+
+
+func is_in_grid(col: int, row: int) -> bool:
+	if col >= 0 and col < width:
+		if row >= 0 and row < height:
+			return true
+	return false
