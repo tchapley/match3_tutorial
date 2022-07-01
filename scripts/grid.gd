@@ -69,7 +69,8 @@ func spawn_pieces() -> void:
 func match_at(col: int, row: int, color: String) -> bool:
 	if col > 1:
 		if all_pieces[col - 1][row] != null and all_pieces[col - 2][row] != null:
-				if all_pieces[col - 1][row].color == color and all_pieces[col - 2][row].color == color:
+				if all_pieces[col - 1][row].color == color \
+					and all_pieces[col - 2][row].color == color:
 					return true
 	if row > 1:
 		if all_pieces[col][row - 1] != null and all_pieces[col][row - 2] != null:
@@ -90,6 +91,7 @@ func touch_input() -> void:
 		var grid_position: Vector2 = pixel_to_grid(final_touch.x, final_touch.y)
 		if is_in_grid(grid_position.x, grid_position.y) and controlling:
 			touch_difference(pixel_to_grid(first_touch.x, first_touch.y), grid_position)
+			controlling = false
 
 
 func swap_pieces(col: int, row: int, direction: Vector2) -> void:
@@ -97,8 +99,8 @@ func swap_pieces(col: int, row: int, direction: Vector2) -> void:
 	var other_piece = all_pieces[col + direction.x][row + direction.y]
 	all_pieces[col][row] = other_piece
 	all_pieces[col + direction.x][row + direction.y] = first_piece
-	first_piece.position = other_piece.position
-	other_piece.position = grid_to_pixel(col, row)
+	first_piece.move(other_piece.position)
+	other_piece.move(grid_to_pixel(col, row))
 
 
 func touch_difference(grid1: Vector2, grid2: Vector2) -> void:
