@@ -95,11 +95,12 @@ func touch_input() -> void:
 func swap_pieces(col: int, row: int, direction: Vector2) -> void:
 	var first_piece = all_pieces[col][row]
 	var other_piece = all_pieces[col + direction.x][row + direction.y]
-	all_pieces[col][row] = other_piece
-	all_pieces[col + direction.x][row + direction.y] = first_piece
-	first_piece.move(other_piece.position)
-	other_piece.move(grid_to_pixel(col, row))
-	find_matches()
+	if first_piece != null and other_piece != null:
+		all_pieces[col][row] = other_piece
+		all_pieces[col + direction.x][row + direction.y] = first_piece
+		first_piece.move(other_piece.position)
+		other_piece.move(grid_to_pixel(col, row))
+		find_matches()
 
 
 func touch_difference(grid1: Vector2, grid2: Vector2) -> void:
@@ -123,7 +124,7 @@ func is_in_grid(grid_position: Vector2) -> bool:
 	return false
 
 
-func find_matches() -> bool:
+func find_matches() -> void:
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null:
@@ -151,4 +152,17 @@ func find_matches() -> bool:
 									all_pieces[i][j].dim()
 									all_pieces[i][j + 1].matched = true
 									all_pieces[i][j + 1].dim()
-	return false
+	get_parent().get_node("destory_timer").start()
+
+
+func destroy_matched() -> void:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				if all_pieces[i][j].matched:
+					all_pieces[i][j].queue_free()
+					all_pieces[i][j] = null
+
+
+func _on_destory_timer_timeout() -> void:
+	destroy_matched()
