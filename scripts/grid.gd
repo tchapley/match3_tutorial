@@ -155,6 +155,17 @@ func find_matches() -> void:
 	get_parent().get_node("destory_timer").start()
 
 
+func collapse_columns() -> void:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] == null:
+				for k in range(j + 1, height):
+					if all_pieces[i][k] != null:
+						all_pieces[i][k].move(grid_to_pixel(i, j))
+						all_pieces[i][j] = all_pieces[i][k]
+						all_pieces[i][k] = null
+						break
+
 func destroy_matched() -> void:
 	for i in width:
 		for j in height:
@@ -163,6 +174,12 @@ func destroy_matched() -> void:
 					all_pieces[i][j].queue_free()
 					all_pieces[i][j] = null
 
+	get_parent().get_node("collapse_timer").start()
+
 
 func _on_destory_timer_timeout() -> void:
 	destroy_matched()
+
+
+func _on_collapse_timer_timeout() -> void:
+	collapse_columns()
