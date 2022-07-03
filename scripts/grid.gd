@@ -1,5 +1,10 @@
 extends Node2D
 
+enum {
+	WAIT,
+	MOVE,
+}
+
 export(int) var width
 export(int) var height
 export(int) var x_start
@@ -11,6 +16,7 @@ var all_pieces := []
 var first_touch := Vector2.ZERO
 var final_touch := Vector2.ZERO
 var controlling := false
+var state
 var possible_pieces := [
 	preload("res://scenes/blue_piece.tscn"),
 	preload("res://scenes/green_piece.tscn"),
@@ -22,13 +28,15 @@ var possible_pieces := [
 
 
 func _ready() -> void:
+	state = MOVE
 	randomize()
 	all_pieces = make_2d_array()
 	spawn_pieces()
 
 
 func _process(_delta: float) -> void:
-	touch_input()
+	if state == MOVE:
+		touch_input()
 
 
 func make_2d_array() -> Array:
@@ -97,6 +105,7 @@ func swap_pieces(col: int, row: int, direction: Vector2) -> void:
 	var first_piece = all_pieces[col][row]
 	var other_piece = all_pieces[col + direction.x][row + direction.y]
 	if first_piece != null and other_piece != null:
+		state = WAIT
 		all_pieces[col][row] = other_piece
 		all_pieces[col + direction.x][row + direction.y] = first_piece
 		first_piece.move(other_piece.position)
@@ -194,6 +203,20 @@ func refill_columns() -> void:
 				piece.position = grid_to_pixel(i, j - y_offset)
 				piece.move(grid_to_pixel(i, j))
 				all_pieces[i][j] = piece
+
+	after_refill()
+
+func after_refill() -> void:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				if match_at(i, j, all_pieces[i][j].color):
+					find_matches()
+					get_parent().get_node("destory_timer").start()
+					return
+
+	state = MOVE
+
 
 func _on_destory_timer_timeout() -> void:
 	destroy_matched()
