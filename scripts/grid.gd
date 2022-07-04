@@ -16,7 +16,12 @@ var all_pieces := []
 var first_touch := Vector2.ZERO
 var final_touch := Vector2.ZERO
 var controlling := false
-var state
+var state := MOVE
+var piece_one: Node2D = null
+var piece_two: Node2D = null
+var last_place := Vector2.ZERO
+var last_direction := Vector2.ZERO
+var move_checked := false
 var possible_pieces := [
 	preload("res://scenes/blue_piece.tscn"),
 	preload("res://scenes/green_piece.tscn"),
@@ -106,11 +111,29 @@ func swap_pieces(col: int, row: int, direction: Vector2) -> void:
 	var other_piece = all_pieces[col + direction.x][row + direction.y]
 	if first_piece != null and other_piece != null:
 		state = WAIT
+		store_info(first_piece, other_piece, Vector2(col, row), direction)
 		all_pieces[col][row] = other_piece
 		all_pieces[col + direction.x][row + direction.y] = first_piece
 		first_piece.move(other_piece.position)
 		other_piece.move(grid_to_pixel(col, row))
-		find_matches()
+		if !move_checked:
+			find_matches()
+
+
+func store_info(first_piece: Node2D, other_piece: Node2D, place: Vector2, direction: Vector2) -> void:
+	piece_one = first_piece
+	piece_two = other_piece
+	last_place = place
+	last_direction = direction
+
+
+func swap_back() -> void:
+	#Move the previously swapped pieces back to their
+	if piece_one != null and piece_two != null:
+		swap_pieces(last_place.x, last_place.y, last_direction)
+	state = MOVE
+	move_checked = false
+	pass
 
 
 func touch_difference(grid1: Vector2, grid2: Vector2) -> void:
@@ -178,14 +201,20 @@ func collapse_columns() -> void:
 	get_parent().get_node("refill_timer").start()
 
 func destroy_matched() -> void:
+	var was_matched := false
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null:
 				if all_pieces[i][j].matched:
+					was_matched = true
 					all_pieces[i][j].queue_free()
 					all_pieces[i][j] = null
 
-	get_parent().get_node("collapse_timer").start()
+	move_checked = true
+	if was_matched:
+		get_parent().get_node("collapse_timer").start()
+	else:
+		swap_back()
 
 
 func refill_columns() -> void:
@@ -216,6 +245,7 @@ func after_refill() -> void:
 					return
 
 	state = MOVE
+	move_checked = false
 
 
 func _on_destory_timer_timeout() -> void:
