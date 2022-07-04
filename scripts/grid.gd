@@ -11,6 +11,7 @@ export(int) var x_start
 export(int) var y_start
 export(int) var offset
 export(int) var y_offset
+export(PoolVector2Array) var empty_spaces
 
 var all_pieces := []
 var first_touch := Vector2.ZERO
@@ -44,6 +45,13 @@ func _process(_delta: float) -> void:
 		touch_input()
 
 
+func restricted_movement(place: Vector2) -> bool:
+	for i in empty_spaces.size():
+		if empty_spaces[i] == place:
+			return true
+	return false
+
+
 func make_2d_array() -> Array:
 	var array := []
 	for i in width:
@@ -68,16 +76,17 @@ func pixel_to_grid(x: float, y: float) -> Vector2:
 func spawn_pieces() -> void:
 	for i in width:
 		for j in height:
-			var rand: int = floor(rand_range(0, possible_pieces.size()))
-			var piece: Node2D = possible_pieces[rand].instance()
-			var loops := 0
-			while match_at(i, j, piece.color) and loops < 100:
-				loops += 1
-				rand = floor(rand_range(0, possible_pieces.size()))
-				piece = possible_pieces[rand].instance()
-			add_child(piece)
-			piece.position = grid_to_pixel(i, j)
-			all_pieces[i][j] = piece
+			if !restricted_movement(Vector2(i, j)):
+				var rand: int = floor(rand_range(0, possible_pieces.size()))
+				var piece: Node2D = possible_pieces[rand].instance()
+				var loops := 0
+				while match_at(i, j, piece.color) and loops < 100:
+					loops += 1
+					rand = floor(rand_range(0, possible_pieces.size()))
+					piece = possible_pieces[rand].instance()
+				add_child(piece)
+				piece.position = grid_to_pixel(i, j)
+				all_pieces[i][j] = piece
 
 
 func match_at(col: int, row: int, color: String) -> bool:
@@ -191,7 +200,7 @@ func find_matches() -> void:
 func collapse_columns() -> void:
 	for i in width:
 		for j in height:
-			if all_pieces[i][j] == null:
+			if all_pieces[i][j] == null and !restricted_movement(Vector2(i, j)):
 				for k in range(j + 1, height):
 					if all_pieces[i][k] != null:
 						all_pieces[i][k].move(grid_to_pixel(i, j))
@@ -220,7 +229,7 @@ func destroy_matched() -> void:
 func refill_columns() -> void:
 	for i in width:
 		for j in height:
-			if all_pieces[i][j] == null:
+			if all_pieces[i][j] == null and !restricted_movement(Vector2(i, j)):
 				var rand: int = floor(rand_range(0, possible_pieces.size()))
 				var piece: Node2D = possible_pieces[rand].instance()
 				var loops := 0
