@@ -1,5 +1,8 @@
 extends Node2D
 
+signal damage_ice
+signal make_ice
+
 enum {
 	WAIT,
 	MOVE,
@@ -12,6 +15,7 @@ export(int) var y_start
 export(int) var offset
 export(int) var y_offset
 export(PoolVector2Array) var empty_spaces
+export(PoolVector2Array) var ice_spaces
 
 var all_pieces := []
 var first_touch := Vector2.ZERO
@@ -38,6 +42,7 @@ func _ready() -> void:
 	randomize()
 	all_pieces = make_2d_array()
 	spawn_pieces()
+	spawn_ice()
 
 
 func _process(_delta: float) -> void:
@@ -88,6 +93,10 @@ func spawn_pieces() -> void:
 				piece.position = grid_to_pixel(i, j)
 				all_pieces[i][j] = piece
 
+
+func spawn_ice() -> void:
+	for i in ice_spaces.size():
+		emit_signal("make_ice", ice_spaces[i])
 
 func match_at(col: int, row: int, color: String) -> bool:
 	if col > 1:
@@ -215,6 +224,8 @@ func destroy_matched() -> void:
 		for j in height:
 			if all_pieces[i][j] != null:
 				if all_pieces[i][j].matched:
+					emit_signal("damage_ice", Vector2(i, j))
+					print("emitted signal")
 					was_matched = true
 					all_pieces[i][j].queue_free()
 					all_pieces[i][j] = null
