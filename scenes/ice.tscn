@@ -7,6 +7,6 @@
 script = ExtResource( 2 )
 health = 1
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="sprite" type="Sprite" parent="."]
 scale = Vector2( 0.5, 0.5 )
 texture = ExtResource( 1 )

@@ -2,6 +2,8 @@ extends Node2D
 
 signal damage_ice
 signal make_ice
+signal make_lock
+signal damage_lock
 
 enum {
 	WAIT,
@@ -16,6 +18,7 @@ export(int) var offset
 export(int) var y_offset
 export(PoolVector2Array) var empty_spaces
 export(PoolVector2Array) var ice_spaces
+export(PoolVector2Array) var lock_spaces
 
 var all_pieces := []
 var first_touch := Vector2.ZERO
@@ -43,6 +46,7 @@ func _ready() -> void:
 	all_pieces = make_2d_array()
 	spawn_pieces()
 	spawn_ice()
+	spawn_lock()
 
 
 func _process(_delta: float) -> void:
@@ -52,6 +56,12 @@ func _process(_delta: float) -> void:
 
 func restricted_fill(place: Vector2) -> bool:
 	if is_in_array(empty_spaces, place):
+		return true
+	return false
+
+
+func restricted_move(place: Vector2) -> bool:
+	if is_in_array(lock_spaces, place):
 		return true
 	return false
 
@@ -104,6 +114,11 @@ func spawn_ice() -> void:
 	for i in ice_spaces.size():
 		emit_signal("make_ice", ice_spaces[i])
 
+
+func spawn_lock() -> void:
+	for i in lock_spaces.size():
+		emit_signal("make_lock", lock_spaces[i])
+
 func match_at(col: int, row: int, color: String) -> bool:
 	if col > 1:
 		if all_pieces[col - 1][row] != null and all_pieces[col - 2][row] != null:
@@ -134,14 +149,15 @@ func swap_pieces(col: int, row: int, direction: Vector2) -> void:
 	var first_piece = all_pieces[col][row]
 	var other_piece = all_pieces[col + direction.x][row + direction.y]
 	if first_piece != null and other_piece != null:
-		state = WAIT
-		store_info(first_piece, other_piece, Vector2(col, row), direction)
-		all_pieces[col][row] = other_piece
-		all_pieces[col + direction.x][row + direction.y] = first_piece
-		first_piece.move(other_piece.position)
-		other_piece.move(grid_to_pixel(col, row))
-		if !move_checked:
-			find_matches()
+		if !restricted_move(Vector2(col, row)) and !restricted_move(Vector2(col, row) + direction):
+			state = WAIT
+			store_info(first_piece, other_piece, Vector2(col, row), direction)
+			all_pieces[col][row] = other_piece
+			all_pieces[col + direction.x][row + direction.y] = first_piece
+			first_piece.move(other_piece.position)
+			other_piece.move(grid_to_pixel(col, row))
+			if !move_checked:
+				find_matches()
 
 
 func store_info(first_piece: Node2D, other_piece: Node2D, place: Vector2, direction: Vector2) -> void:
@@ -223,8 +239,8 @@ func destroy_matched() -> void:
 		for j in height:
 			if all_pieces[i][j] != null:
 				if all_pieces[i][j].matched:
-					emit_signal("damage_ice", Vector2(i, j))
 					was_matched = true
+					damage_special(i, j)
 					all_pieces[i][j].queue_free()
 					all_pieces[i][j] = null
 
@@ -233,6 +249,11 @@ func destroy_matched() -> void:
 		get_parent().get_node("collapse_timer").start()
 	else:
 		swap_back()
+
+
+func damage_special(col: int, row: int) -> void:
+	emit_signal("damage_ice", Vector2(col, row))
+	emit_signal("damage_lock", Vector2(col, row))
 
 
 func collapse_columns() -> void:
@@ -289,3 +310,9 @@ func _on_collapse_timer_timeout() -> void:
 
 func _on_refill_timer_timeout() -> void:
 	refill_columns()
+
+
+func _on_lock_holder_remove_lock(place: Vector2) -> void:
+	for i in range(lock_spaces.size() - 1, -1, -1):
+		if lock_spaces[i] == place:
+			lock_spaces.remove(i)
