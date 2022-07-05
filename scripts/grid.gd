@@ -50,9 +50,15 @@ func _process(_delta: float) -> void:
 		touch_input()
 
 
-func restricted_movement(place: Vector2) -> bool:
-	for i in empty_spaces.size():
-		if empty_spaces[i] == place:
+func restricted_fill(place: Vector2) -> bool:
+	if is_in_array(empty_spaces, place):
+		return true
+	return false
+
+
+func is_in_array(array: Array, item: Vector2) -> bool:
+	for i in array.size():
+		if item == array[i]:
 			return true
 	return false
 
@@ -81,7 +87,7 @@ func pixel_to_grid(x: float, y: float) -> Vector2:
 func spawn_pieces() -> void:
 	for i in width:
 		for j in height:
-			if !restricted_movement(Vector2(i, j)):
+			if !restricted_fill(Vector2(i, j)):
 				var rand: int = floor(rand_range(0, possible_pieces.size()))
 				var piece: Node2D = possible_pieces[rand].instance()
 				var loops := 0
@@ -185,38 +191,31 @@ func find_matches() -> void:
 						and all_pieces[i + 1][j] != null:
 							if all_pieces[i - 1][j].color == current_color \
 								and all_pieces[i + 1][j].color ==  current_color:
-									all_pieces[i - 1][j].matched = true
-									all_pieces[i - 1][j].dim()
-									all_pieces[i][j].matched = true
-									all_pieces[i][j].dim()
-									all_pieces[i + 1][j].matched = true
-									all_pieces[i + 1][j].dim()
+									match_and_dim(all_pieces[i - 1][j])
+									match_and_dim(all_pieces[i][j])
+									match_and_dim(all_pieces[i + 1][j])
 
 				if j > 0 and j < height - 1:
 					if all_pieces[i][j - 1] != null \
 						and all_pieces[i][j + 1] != null:
 							if all_pieces[i][j - 1].color == current_color \
 								and all_pieces[i][j + 1].color ==  current_color:
-									all_pieces[i][j - 1].matched = true
-									all_pieces[i][j - 1].dim()
-									all_pieces[i][j].matched = true
-									all_pieces[i][j].dim()
-									all_pieces[i][j + 1].matched = true
-									all_pieces[i][j + 1].dim()
+									match_and_dim(all_pieces[i][j - 1])
+									match_and_dim(all_pieces[i][j])
+									match_and_dim(all_pieces[i][j + 1])
 	get_parent().get_node("destory_timer").start()
 
 
-func collapse_columns() -> void:
-	for i in width:
-		for j in height:
-			if all_pieces[i][j] == null and !restricted_movement(Vector2(i, j)):
-				for k in range(j + 1, height):
-					if all_pieces[i][k] != null:
-						all_pieces[i][k].move(grid_to_pixel(i, j))
-						all_pieces[i][j] = all_pieces[i][k]
-						all_pieces[i][k] = null
-						break
-	get_parent().get_node("refill_timer").start()
+func is_piece_null(col: int, row: int) -> bool:
+	if all_pieces[col][row] == null:
+		return true
+	return false
+
+
+func match_and_dim(item: Node2D) -> void:
+	item.matched = true
+	item.dim()
+
 
 func destroy_matched() -> void:
 	var was_matched := false
@@ -225,7 +224,6 @@ func destroy_matched() -> void:
 			if all_pieces[i][j] != null:
 				if all_pieces[i][j].matched:
 					emit_signal("damage_ice", Vector2(i, j))
-					print("emitted signal")
 					was_matched = true
 					all_pieces[i][j].queue_free()
 					all_pieces[i][j] = null
@@ -237,10 +235,23 @@ func destroy_matched() -> void:
 		swap_back()
 
 
+func collapse_columns() -> void:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] == null and !restricted_fill(Vector2(i, j)):
+				for k in range(j + 1, height):
+					if all_pieces[i][k] != null:
+						all_pieces[i][k].move(grid_to_pixel(i, j))
+						all_pieces[i][j] = all_pieces[i][k]
+						all_pieces[i][k] = null
+						break
+	get_parent().get_node("refill_timer").start()
+
+
 func refill_columns() -> void:
 	for i in width:
 		for j in height:
-			if all_pieces[i][j] == null and !restricted_movement(Vector2(i, j)):
+			if all_pieces[i][j] == null and !restricted_fill(Vector2(i, j)):
 				var rand: int = floor(rand_range(0, possible_pieces.size()))
 				var piece: Node2D = possible_pieces[rand].instance()
 				var loops := 0

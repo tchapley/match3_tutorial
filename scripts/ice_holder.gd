@@ -21,7 +21,6 @@ func _on_grid_make_ice(board_position: Vector2) -> void:
 	add_child(current)
 	current.position = Vector2(board_position.x * 64 + 64, 800 - board_position.y * 64)
 	ice_pieces[board_position.x][board_position.y] = current
-	print(ice_pieces)
 
 
 func _on_grid_damage_ice(board_position: Vector2) -> void:
