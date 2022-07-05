@@ -4,6 +4,8 @@ signal damage_ice
 signal make_ice
 signal make_lock
 signal damage_lock
+signal make_concrete
+signal damage_concrete
 
 enum {
 	WAIT,
@@ -19,6 +21,7 @@ export(int) var y_offset
 export(PoolVector2Array) var empty_spaces
 export(PoolVector2Array) var ice_spaces
 export(PoolVector2Array) var lock_spaces
+export(PoolVector2Array) var concrete_spaces
 
 var all_pieces := []
 var first_touch := Vector2.ZERO
@@ -47,6 +50,7 @@ func _ready() -> void:
 	spawn_pieces()
 	spawn_ice()
 	spawn_lock()
+	spawn_concrete()
 
 
 func _process(_delta: float) -> void:
@@ -57,6 +61,10 @@ func _process(_delta: float) -> void:
 func restricted_fill(place: Vector2) -> bool:
 	if is_in_array(empty_spaces, place):
 		return true
+
+	if is_in_array(concrete_spaces, place):
+		return true
+
 	return false
 
 
@@ -71,6 +79,10 @@ func is_in_array(array: Array, item: Vector2) -> bool:
 		if item == array[i]:
 			return true
 	return false
+
+
+func remove_from_array(array: Array, item: Vector2) -> void:
+	pass
 
 
 func make_2d_array() -> Array:
@@ -118,6 +130,12 @@ func spawn_ice() -> void:
 func spawn_lock() -> void:
 	for i in lock_spaces.size():
 		emit_signal("make_lock", lock_spaces[i])
+
+
+func spawn_concrete() -> void:
+	for i in concrete_spaces.size():
+		emit_signal("make_concrete", concrete_spaces[i])
+
 
 func match_at(col: int, row: int, color: String) -> bool:
 	if col > 1:
@@ -251,9 +269,21 @@ func destroy_matched() -> void:
 		swap_back()
 
 
+func check_concrete(col: int, row: int) -> void:
+	if col < width - 1:
+		emit_signal("damage_concrete", Vector2(col + 1, row))
+	if col > 0:
+		emit_signal("damage_concrete", Vector2(col - 1, row))
+	if row < height - 1:
+		emit_signal("damage_concrete", Vector2(col, row + 1))
+	if col > 0:
+		emit_signal("damage_concrete", Vector2(col, row - 1))
+
+
 func damage_special(col: int, row: int) -> void:
 	emit_signal("damage_ice", Vector2(col, row))
 	emit_signal("damage_lock", Vector2(col, row))
+	check_concrete(col, row)
 
 
 func collapse_columns() -> void:
@@ -316,3 +346,9 @@ func _on_lock_holder_remove_lock(place: Vector2) -> void:
 	for i in range(lock_spaces.size() - 1, -1, -1):
 		if lock_spaces[i] == place:
 			lock_spaces.remove(i)
+
+
+func _on_concrete_holder_remove_concrete(place: Vector2) -> void:
+	for i in range(concrete_spaces.size() - 1, -1, -1):
+		if concrete_spaces[i] == place:
+			concrete_spaces.remove(i)
