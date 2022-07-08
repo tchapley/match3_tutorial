@@ -24,7 +24,7 @@ func _on_grid_make_ice(board_position: Vector2) -> void:
 
 
 func _on_grid_damage_ice(board_position: Vector2) -> void:
-	if ice_pieces[board_position.x][board_position.y] != null:
+	if ice_pieces[board_position.x][board_position.y] != null and is_instance_valid(ice_pieces[board_position.x][board_position.y]):
 		ice_pieces[board_position.x][board_position.y].take_damage(1)
 		if ice_pieces[board_position.x][board_position.y].health <= 0:
 			ice_pieces[board_position.x][board_position.y].queue_free()

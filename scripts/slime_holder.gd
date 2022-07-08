@@ -21,12 +21,12 @@ func _on_grid_make_slime(board_position: Vector2) -> void:
 		slime_pieces = make_2d_array()
 	var current = slime.instance()
 	add_child(current)
-	current.position = Vector2(board_position.x * 64 + 64, 800 - board_position.y * 64)
+	current.position = Vector2(board_position.x * 64 + 64, -board_position.y * 64 + 800)
 	slime_pieces[board_position.x][board_position.y] = current
 
 
 func _on_grid_damage_slime(board_position: Vector2) -> void:
-	if slime_pieces[board_position.x][board_position.y] != null:
+	if slime_pieces[board_position.x][board_position.y] != null and is_instance_valid(slime_pieces[board_position.x][board_position.y]):
 		slime_pieces[board_position.x][board_position.y].take_damage(1)
 		if slime_pieces[board_position.x][board_position.y].health <= 0:
 			slime_pieces[board_position.x][board_position.y].queue_free()

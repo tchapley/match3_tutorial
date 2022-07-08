@@ -26,7 +26,7 @@ func _on_grid_make_lock(board_position: Vector2) -> void:
 
 
 func _on_grid_damage_lock(board_position: Vector2) -> void:
-	if lock_pieces[board_position.x][board_position.y] != null:
+	if lock_pieces[board_position.x][board_position.y] != null and is_instance_valid(lock_pieces[board_position.x][board_position.y]):
 		lock_pieces[board_position.x][board_position.y].take_damage(1)
 		if lock_pieces[board_position.x][board_position.y].health <= 0:
 			lock_pieces[board_position.x][board_position.y].queue_free()

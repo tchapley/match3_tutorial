@@ -26,7 +26,7 @@ func _on_grid_make_concrete(board_position: Vector2) -> void:
 
 
 func _on_grid_damage_concrete(board_position: Vector2) -> void:
-	if concrete_pieces[board_position.x][board_position.y] != null:
+	if concrete_pieces[board_position.x][board_position.y] != null and is_instance_valid(concrete_pieces[board_position.x][board_position.y]):
 		concrete_pieces[board_position.x][board_position.y].take_damage(1)
 		if concrete_pieces[board_position.x][board_position.y].health <= 0:
 			concrete_pieces[board_position.x][board_position.y].queue_free()
