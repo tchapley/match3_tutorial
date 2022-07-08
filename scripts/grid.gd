@@ -262,7 +262,19 @@ func find_matches() -> void:
 									add_to_array(Vector2(i, j - 1))
 									add_to_array(Vector2(i, j))
 									add_to_array(Vector2(i, j + 1))
+	get_bombed_pieces()
 	get_parent().get_node("destory_timer").start()
+
+
+func get_bombed_pieces():
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				if all_pieces[i][j].matched:
+					if all_pieces[i][j].is_column_bomb:
+						match_all_in_column(i)
+					elif all_pieces[i][j].is_row_bomb:
+						match_all_in_row(j)
 
 
 func add_to_array(value: Vector2, array_to_add = current_matches) -> void:
@@ -460,6 +472,20 @@ func find_normal_neighbor(col: int, row: int) -> Vector2:
 		if all_pieces[col][row - 1] != null:
 			return Vector2(col, row - 1)
 	return Vector2.INF
+
+
+func match_all_in_column(column):
+	print("Found col bomb")
+	for i in height:
+		if all_pieces[column][i] != null:
+			all_pieces[column][i].matched = true
+
+
+func match_all_in_row(row):
+	print("Found row bomb")
+	for i in width:
+		if all_pieces[i][row] != null:
+			all_pieces[i][row].matched = true
 
 
 func _on_destory_timer_timeout() -> void:
