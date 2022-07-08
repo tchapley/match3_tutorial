@@ -36,6 +36,7 @@ var piece_two: Node2D = null
 var last_place := Vector2.ZERO
 var last_direction := Vector2.ZERO
 var move_checked := false
+var damaged_slime = false
 var possible_pieces := [
 	preload("res://scenes/blue_piece.tscn"),
 	preload("res://scenes/green_piece.tscn"),
@@ -286,7 +287,7 @@ func check_concrete(col: int, row: int) -> void:
 		emit_signal("damage_concrete", Vector2(col - 1, row))
 	if row < height - 1:
 		emit_signal("damage_concrete", Vector2(col, row + 1))
-	if col > 0:
+	if row > 0:
 		emit_signal("damage_concrete", Vector2(col, row - 1))
 
 
@@ -297,7 +298,7 @@ func check_slime(col: int, row: int) -> void:
 		emit_signal("damage_slime", Vector2(col - 1, row))
 	if row < height - 1:
 		emit_signal("damage_slime", Vector2(col, row + 1))
-	if col > 0:
+	if row > 0:
 		emit_signal("damage_slime", Vector2(col, row - 1))
 
 
@@ -347,9 +348,46 @@ func after_refill() -> void:
 					find_matches()
 					get_parent().get_node("destory_timer").start()
 					return
-
+	if !damaged_slime:
+		generate_slime()
 	state = MOVE
 	move_checked = false
+	damaged_slime = false
+
+
+func generate_slime():
+	if slime_spaces.size() > 0:
+		var slime_made = false
+		var tracker = 0
+		while !slime_made and tracker < 100:
+			var random_num = floor(rand_range(0, slime_spaces.size()))
+			var curr_x = slime_spaces[random_num].x
+			var curr_y = slime_spaces[random_num].y
+			var neighbor = find_normal_neighbor(curr_x, curr_y)
+			if neighbor != Vector2.INF:
+				slime_made = true
+				all_pieces[neighbor.x][neighbor.y].queue_free()
+				all_pieces[neighbor.x][neighbor.y] = null
+				slime_spaces.append(Vector2(neighbor.x, neighbor.y))
+				emit_signal("make_slime", Vector2(neighbor.x, neighbor.y))
+
+			tracker += 1
+
+
+func find_normal_neighbor(col: int, row: int) -> Vector2:
+	if is_in_grid(Vector2(col + 1, row)):
+		if all_pieces[col + 1][row] != null:
+			return Vector2(col + 1, row)
+	if is_in_grid(Vector2(col - 1, row)):
+		if all_pieces[col - 1][row] != null:
+			return Vector2(col - 1, row)
+	if is_in_grid(Vector2(col, row + 1)):
+		if all_pieces[col][row + 1] != null:
+			return Vector2(col, row + 1)
+	if is_in_grid(Vector2(col, row - 1)):
+		if all_pieces[col][row - 1] != null:
+			return Vector2(col, row - 1)
+	return Vector2.INF
 
 
 func _on_destory_timer_timeout() -> void:
@@ -377,6 +415,7 @@ func _on_concrete_holder_remove_concrete(place: Vector2) -> void:
 
 
 func _on_slime_holder_remove_slime(place: Vector2) -> void:
+	damaged_slime = true
 	for i in range(slime_spaces.size() - 1, -1, -1):
 		if slime_spaces[i] == place:
 			slime_spaces.remove(i)
