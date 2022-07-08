@@ -3,7 +3,7 @@ Simple git repo to manage code while following along with the tutorial linked be
 
 https://www.youtube.com/playlist?list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2
 
-You can find more of his work at 
+You can find more of his work at
 
 https://github.com/mistertaftcreates
 
@@ -29,7 +29,7 @@ https://github.com/mistertaftcreates
 - [x] Part 19: [Refactoring](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=20)
 - [x] Part 20: ["Licorice" Pieces](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=21)
 - [x] Part 21: ["Icing" Tiles](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=22)
-- [ ] Part 22: ["Chocoloate" Tiles Part 1](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=23)
+- [x] Part 22: ["Chocoloate" Tiles Part 1](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=23)
 - [ ] Part 23: ["Chocoloate" Tiles Part 2](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=24)
 - [ ] Part 24: [Bomb Setup](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=25)
 - [ ] Part 24.1: [Bombs Continues](https://www.youtube.com/watch?v=RO5pXiN6UnI&list=PL4vbr3u7UKWqwQlvwvgNcgDL1p_3hcNn2&index=26)

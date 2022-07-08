@@ -6,6 +6,8 @@ signal make_lock
 signal damage_lock
 signal make_concrete
 signal damage_concrete
+signal make_slime
+signal damage_slime
 
 enum {
 	WAIT,
@@ -22,6 +24,7 @@ export(PoolVector2Array) var empty_spaces
 export(PoolVector2Array) var ice_spaces
 export(PoolVector2Array) var lock_spaces
 export(PoolVector2Array) var concrete_spaces
+export(PoolVector2Array) var slime_spaces
 
 var all_pieces := []
 var first_touch := Vector2.ZERO
@@ -51,6 +54,7 @@ func _ready() -> void:
 	spawn_ice()
 	spawn_lock()
 	spawn_concrete()
+	spawn_slime()
 
 
 func _process(_delta: float) -> void:
@@ -61,8 +65,9 @@ func _process(_delta: float) -> void:
 func restricted_fill(place: Vector2) -> bool:
 	if is_in_array(empty_spaces, place):
 		return true
-
 	if is_in_array(concrete_spaces, place):
+		return true
+	if is_in_array(slime_spaces, place):
 		return true
 
 	return false
@@ -135,6 +140,11 @@ func spawn_lock() -> void:
 func spawn_concrete() -> void:
 	for i in concrete_spaces.size():
 		emit_signal("make_concrete", concrete_spaces[i])
+
+
+func spawn_slime() -> void:
+	for i in slime_spaces.size():
+		emit_signal("make_slime", slime_spaces[i])
 
 
 func match_at(col: int, row: int, color: String) -> bool:
@@ -280,10 +290,22 @@ func check_concrete(col: int, row: int) -> void:
 		emit_signal("damage_concrete", Vector2(col, row - 1))
 
 
+func check_slime(col: int, row: int) -> void:
+	if col < width - 1:
+		emit_signal("damage_slime", Vector2(col + 1, row))
+	if col > 0:
+		emit_signal("damage_slime", Vector2(col - 1, row))
+	if row < height - 1:
+		emit_signal("damage_slime", Vector2(col, row + 1))
+	if col > 0:
+		emit_signal("damage_slime", Vector2(col, row - 1))
+
+
 func damage_special(col: int, row: int) -> void:
 	emit_signal("damage_ice", Vector2(col, row))
 	emit_signal("damage_lock", Vector2(col, row))
 	check_concrete(col, row)
+	check_slime(col, row)
 
 
 func collapse_columns() -> void:
@@ -352,3 +374,9 @@ func _on_concrete_holder_remove_concrete(place: Vector2) -> void:
 	for i in range(concrete_spaces.size() - 1, -1, -1):
 		if concrete_spaces[i] == place:
 			concrete_spaces.remove(i)
+
+
+func _on_slime_holder_remove_slime(place: Vector2) -> void:
+	for i in range(slime_spaces.size() - 1, -1, -1):
+		if slime_spaces[i] == place:
+			slime_spaces.remove(i)
